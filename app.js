@@ -38,13 +38,13 @@ app.use((req,res,next)=>{
 })
 
 app.get('/', (req, res)=>{
-  res.render('pages/home')
+  res.render('pages/home', {title: 'Home'})
 })
 
 // Protected Routes
 app.get('/dashboard', isLoggedIn, (req, res)=>{
   console.log(req.isAuthenticated())
-  res.render('pages/dashboard')
+  res.render('pages/dashboard', {title: 'Dashboard'})
 })
 
 app.get('/api/goals', isLoggedIn, async(req, res, next)=>{
@@ -146,11 +146,11 @@ app.delete('/api/goals/todos/:id', isLoggedIn, async(req, res, next)=>{
 })
 
 app.get('/signup', (req, res)=>{
-  res.render('pages/signup', {error: "Username is taken"})
+  res.render('pages/signup', {title: 'signup page'})
 })
 
 app.get('/signin', (req, res)=>{
-  res.render('pages/signin')
+  res.render('pages/signin', {title: 'signin page'})
 })
 // Auth Routes
 app.post('/signup', async(req, res)=>{

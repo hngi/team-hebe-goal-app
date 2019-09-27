@@ -9,4 +9,4 @@ const todoSchema = new mongoose.Schema({
   completed: {Type: Boolean, default: false}
 })
 
-module.exports = mongoose.model('Todo', todoSchema) 
+module.exports = mongoose.model('Todo', todoSchema)
