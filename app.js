@@ -163,11 +163,11 @@ app.delete('/api/goals/todos/:id', isLoggedIn, async(req, res, next)=>{
 })
 
 app.get('/signup', (req, res)=>{
-  res.render('pages/signup', {title: 'signup page'})
+  res.render('pages/signup', {title: 'Sign-up'})
 })
 
 app.get('/signin', (req, res)=>{
-  res.render('pages/signin', {title: 'signin page'})
+  res.render('pages/signin', {title: 'Sign-in'})
 })
 // Auth Routes
 app.post('/signup', async(req, res)=>{
