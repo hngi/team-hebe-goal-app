@@ -202,10 +202,8 @@ app.post('/signin', passport.authenticate('local', {
 })
 
 app.get('/signout', (req, res)=>{
-  if(req.isAuthenticated()){
-    req.logout()
-  }
-  res.redirect('/')
+  req.logout()
+  return res.redirect('/')
 })
 
 // Auth Middleware
