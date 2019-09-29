@@ -5,8 +5,8 @@ const userSchema = new mongoose.Schema({
   firstname: String,
   lastname: String,
   email: String,
-  username: String,
-  password: String,
+  username: {type: String, minlength: 3},
+  password: {type: String, minlength: 6},
   goals: [{
     type: mongoose.Schema.Types.ObjectId,
     ref: "Goal"

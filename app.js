@@ -1,3 +1,4 @@
+const config = require('./utils/config')
 const express = require('express')
 const logger = require('morgan')
 const path = require('path')
@@ -9,12 +10,14 @@ const User = require('./models/user')
 const Goal = require('./models/goal')
 const Todo = require('./models/todo')
 const app = express()
-const PORT = process.env.PORT || 8000
-// const url = `mongodb://team_hebe:teamhebe123@ds145283.mlab.com:45283/team_hebe_goal_tracker_app`
-const url = 'mongodb://localhost/teamhebeauth'
-mongoose.connect(url, {useNewUrlParser: true, useUnifiedTopology: true},()=>{
-  console.log('connected to database')
-})
+
+mongoose.connect(config.MONGODB_URI, {useNewUrlParser: true, useUnifiedTopology: true, useFindAndModify: false})
+  .then(()=>{
+    console.log(`Connected to MongoDB database successfully!`)
+  })
+  .catch(error=>{
+    console.log(`Error connecting to mongoDB:`, error.message)
+  })
 
 app.use(cors())
 app.use(logger('dev'))
@@ -38,12 +41,11 @@ app.use((req,res,next)=>{
 })
 
 app.get('/', (req, res)=>{
-  res.render('pages/home', {title: 'Home'})
+  res.redirect('/signin')
 })
 
 // Protected Routes
 app.get('/dashboard', isLoggedIn, (req, res)=>{
-  console.log(req.isAuthenticated())
   res.render('pages/dashboard', {title: 'Dashboard'})
 })
 
@@ -63,6 +65,21 @@ app.post('/api/goals', isLoggedIn, async(req, res, next)=>{
       await newGoal.save()
       res.json({newGoal: newGoal})
     }
+  }catch(err){
+    res.json({
+      error: err.message
+    })
+  }
+})
+
+// Edit A Goal
+app.get('/api/goals', isLoggedIn, async(req, res, next)=>{
+  try{
+    const currentGoal = Goal.findById(req.params.id)
+    if(currentGoal.owner.equals(req.user._id)){
+      await Goal.findByIdAndUpdate(req.params.id, req.body)
+    }
+    res.redirect('/dashboard')
   }catch(err){
     res.json({
       error: err.message
@@ -159,12 +176,16 @@ app.post('/signup', async(req, res)=>{
     const userExists = await User.findOne({username})
     if(userExists){
       console.log('username must be unique')
-      return res.render('pages/signup')
+      return res.redirect('/signup')
+    }
+    if(username.length < 3 || password.length < 6){
+      console.log('username must be must be at least 3 characters, password must be at least 6 characters')
+      return res.redirtect('/signup')
     }
     const newUser = await User.register(new User({lastname: req.body['last-name'], firstname: req.body['first-name'], email: req.body.email, username: req.body.username}), password)
     if(!newUser || !req.body.username){
       console.log(err)
-      return res.render('pages/signup')
+      return res.redirect('/signup')
     }
     passport.authenticate('local')(req, res, ()=>{
       res.redirect('/dashboard')
@@ -177,10 +198,13 @@ app.post('/signup', async(req, res)=>{
 app.post('/signin', passport.authenticate('local', {
   failureRedirect: '/signin'
 }), (req, res)=>{
-  res.status(301).redirect('/dashboard')
+  res.redirect('/dashboard')
 })
-app.get('/logout', (req, res)=>{
-  req.logout()
+
+app.get('/signout', (req, res)=>{
+  if(req.isAuthenticated()){
+    req.logout()
+  }
   res.redirect('/')
 })
 
@@ -192,6 +216,7 @@ function isLoggedIn(req, res, next){
   res.redirect('/signin')
 }
 
-app.listen(PORT, ()=>{
-  console.log('server listening at port', PORT)
+app.listen(config.PORT, ()=>{
+  console.log('server listening at port', config.PORT)
+  console.log('connecting to mongodb database...')
 })
